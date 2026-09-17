@@ -6,21 +6,26 @@
 <title>Amelia Gates</title>
 <meta name="description" content="Amelia Gates — New York, NY.">
 <meta name="theme-color" content="#ffffff">
-<link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
+
+<!-- fixed masthead: never moves -->
+<header class="masthead" id="masthead">
+  <a class="brand" href="#top" data-goto="0">
+    <span class="wordmark">Amelia Gates</span>
+    <span class="rule" aria-hidden="true"></span>
+  </a>
+</header>
+
+<!-- soft dissolve where content passes under the masthead / footer -->
+<div class="veil veil--top" aria-hidden="true"></div>
+<div class="veil veil--bottom" aria-hidden="true"></div>
 
 <main class="scroller" id="scroller">
 
   <!-- ===== PANEL 1 ===== -->
   <section class="panel" id="top" aria-label="Amelia Gates">
-
-    <h1 class="masthead">
-      <a class="brand" href="#top" data-goto="0">
-        <span class="wordmark">Amelia Gates</span>
-        <span class="rule" aria-hidden="true"></span>
-      </a>
-    </h1>
 
     <figure class="hero">
       <img src="img/hero-2400.jpg"
@@ -30,9 +35,9 @@
            alt="Amelia Gates reclining on a writing desk between two windows.">
     </figure>
 
-    <p class="caption">Ivy-League Educated Creative Mind and Know-It-All</p>
+    <p class="caption"><span>Ivy-League Educated Creative Mind</span> <span>and Know-It-All</span></p>
 
-    <button class="arrow" type="button" data-goto="1" aria-label="Scroll to contact">
+    <button class="arrow" type="button" data-goto="1" aria-label="Scroll down">
       <svg viewBox="0 0 32 18" aria-hidden="true" focusable="false">
         <polyline points="1,1 16,16 31,1"></polyline>
       </svg>
@@ -42,13 +47,6 @@
 
   <!-- ===== PANEL 2 ===== -->
   <section class="panel panel--two" id="contact" aria-label="Contact">
-
-    <p class="masthead">
-      <a class="brand" href="#top" data-goto="0">
-        <span class="wordmark">Amelia Gates</span>
-        <span class="rule" aria-hidden="true"></span>
-      </a>
-    </p>
 
     <button class="arrow arrow--up" type="button" data-goto="0" aria-label="Back to top">
       <svg viewBox="0 0 32 18" aria-hidden="true" focusable="false">
@@ -67,10 +65,9 @@
       </figure>
 
       <div class="statement">
-        <p>Man's attitude goes some ways, the way his life will be. If you care
-           about the good life, fix your attitude and call this number:
-           <a class="tel" href="tel:+19106898123">+1&nbsp;(910)&nbsp;689-8123</a>
-        </p>
+        <p>Man's attitude goes some ways, the way his life will be.</p>
+        <p>If you care about the good life, fix your attitude and call this
+           number: <span class="tel">+1&nbsp;(910)&nbsp;689-8123</span></p>
       </div>
 
     </div>
@@ -84,6 +81,6 @@
   <span class="footer-place">New York, NY — © 2026 Amelia Gates</span>
 </footer>
 
-<script src="js/scroll.js?v=2"></script>
+<script src="js/scroll.js?v=3"></script>
 </body>
 </html>

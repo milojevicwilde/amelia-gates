@@ -1,49 +1,85 @@
-/* AMELIA GATES — panel scrolling, v2
-   One wheel tick / swipe / key press moves exactly one panel. */
+/* AMELIA GATES — panel scrolling, v3
+   One wheel tick / swipe / key press moves exactly one panel,
+   on a slow eased tween. */
 
 (function () {
   'use strict';
 
   var scroller = document.getElementById('scroller');
+  var masthead = document.getElementById('masthead');
   if (!scroller) return;
 
   var panels = [].slice.call(scroller.querySelectorAll('.panel'));
   if (panels.length < 2) return;
 
-  var index  = 0;
-  var locked = false;
-  var timer  = null;
-
   var reduce = window.matchMedia &&
                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var LOCK_MS = reduce ? 60 : 820;
+  var DURATION = 1250;   /* ms — length of the slide                     */
+  var COOLDOWN = 260;    /* ms — swallows trackpad momentum afterwards   */
+
+  var index   = 0;
+  var locked  = false;
+  var raf     = null;
+  var cooling = null;
+
+  /* ---- the masthead is fixed, so the panels need to know how tall it is ---- */
+
+  function measure() {
+    if (!masthead) return;
+    var h = Math.round(masthead.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--header-h', h + 'px');
+  }
+
+  /* ---- eased tween ---- */
+
+  function ease(t) {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function release() {
+    if (cooling) clearTimeout(cooling);
+    cooling = setTimeout(function () { locked = false; }, COOLDOWN);
+  }
 
   function goTo(i, instant) {
     i = Math.max(0, Math.min(panels.length - 1, i));
-    if (locked) return;
 
-    var top = i * scroller.clientHeight;
-    var same = (i === index);
-
+    var target = i * scroller.clientHeight;
     index = i;
 
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+
     if (instant || reduce) {
-      scroller.scrollTop = top;
+      scroller.scrollTop = target;
+      locked = false;
       return;
     }
 
-    if (same && Math.abs(scroller.scrollTop - top) < 2) return;
+    var from  = scroller.scrollTop;
+    var delta = target - from;
+
+    if (Math.abs(delta) < 2) { locked = false; return; }
 
     locked = true;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(function () { locked = false; }, LOCK_MS);
+    var t0 = null;
 
-    if (scroller.scrollTo) {
-      scroller.scrollTo({ top: top, behavior: 'smooth' });
-    } else {
-      scroller.scrollTop = top;
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var p = (ts - t0) / DURATION;
+      if (p >= 1) {
+        scroller.scrollTop = target;
+        raf = null;
+        release();
+        return;
+      }
+      scroller.scrollTop = from + delta * ease(p);
+      raf = requestAnimationFrame(frame);
     }
+
+    raf = requestAnimationFrame(frame);
   }
 
   function step(dir) {
@@ -79,6 +115,7 @@
       ? e.changedTouches[0].clientY : startY;
     var dy = startY - endY;
     startY = null;
+    if (locked) return;
     if (Math.abs(dy) < 38) return;
     step(dy > 0 ? 1 : -1);
   }, { passive: true });
@@ -88,53 +125,43 @@
   window.addEventListener('keydown', function (e) {
     var k = e.key;
     if (k === 'ArrowDown' || k === 'PageDown' || k === ' ' || k === 'Spacebar') {
-      e.preventDefault(); step(1);
+      e.preventDefault(); if (!locked) step(1);
     } else if (k === 'ArrowUp' || k === 'PageUp') {
-      e.preventDefault(); step(-1);
+      e.preventDefault(); if (!locked) step(-1);
     } else if (k === 'End') {
-      e.preventDefault(); goTo(panels.length - 1);
+      e.preventDefault(); if (!locked) goTo(panels.length - 1);
     } else if (k === 'Home') {
-      e.preventDefault(); goTo(0);
+      e.preventDefault(); if (!locked) goTo(0);
     }
   });
 
-  /* ---- arrows and the wordmark ---- */
+  /* ---- chevrons and the wordmark ---- */
 
   [].slice.call(document.querySelectorAll('[data-goto]')).forEach(function (el) {
     el.addEventListener('click', function (e) {
       e.preventDefault();
+      if (locked) return;
       goTo(parseInt(el.getAttribute('data-goto'), 10) || 0);
     });
   });
 
-  /* ---- keep index honest if the browser scrolls on its own ---- */
-
-  var sync = null;
-  scroller.addEventListener('scroll', function () {
-    if (sync) clearTimeout(sync);
-    sync = setTimeout(function () {
-      if (locked) return;
-      var h = scroller.clientHeight;
-      if (h) index = Math.round(scroller.scrollTop / h);
-    }, 120);
-  }, { passive: true });
-
-  /* ---- resize: stay on the current panel ---- */
+  /* ---- resize: remeasure the masthead, stay on the current panel ---- */
 
   var rz = null;
   window.addEventListener('resize', function () {
     if (rz) clearTimeout(rz);
     rz = setTimeout(function () {
+      measure();
       locked = false;
       goTo(index, true);
     }, 120);
   });
 
-  /* ---- deep link ---- */
+  /* ---- start ---- */
 
-  if (window.location.hash === '#contact') {
-    goTo(1, true);
-  } else {
-    goTo(0, true);
+  measure();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { measure(); goTo(index, true); });
   }
+  goTo(window.location.hash === '#contact' ? 1 : 0, true);
 })();

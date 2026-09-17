@@ -30,12 +30,12 @@ the custom domain (`www.amelia-gates.com`) is set under
 Every stylesheet and script link carries a version string. Right now:
 
 ```html
-<link rel="stylesheet" href="css/style.css?v=2">
-<script src="js/scroll.js?v=2"></script>
+<link rel="stylesheet" href="css/style.css?v=3">
+<script src="js/scroll.js?v=3"></script>
 ```
 
 **If you edit `css/style.css` or `js/scroll.js`, bump the number in
-`index.html` to `?v=3`, then `?v=4`, and so on.** If you don't, Cloudflare and
+`index.html` to `?v=4`, then `?v=5`, and so on.** If you don't, Cloudflare and
 your browser will keep serving the old file and your change will look like it
 did nothing.
 
@@ -45,9 +45,17 @@ with the same name hits the same cache problem.
 
 ## How the page works
 
-One page, two full-height panels inside `#scroller`. `js/scroll.js` intercepts
-the wheel, swipes and arrow keys so one gesture always moves exactly one panel,
-never a partial scroll. The panels also carry CSS scroll-snap as a backstop.
+One page, two full-height panels inside `#scroller`. The masthead and footer
+are fixed and never move; the panels slide underneath them. `js/scroll.js`
+intercepts the wheel, swipes and arrow keys so one gesture always moves exactly
+one panel, never a partial scroll, and animates it with its own eased tween.
+
+Slide speed lives in one place — `DURATION` at the top of `js/scroll.js`,
+currently `1250` (milliseconds). Raise it for a slower slide. `COOLDOWN` just
+below it swallows trackpad momentum so one flick can't skip a panel.
+
+The two `.veil` divs are the dissolve bands under the masthead and above the
+footer. Their depth is `--veil-top` / `--veil-bot` in `css/style.css`.
 
 Everything that jumps between panels uses `data-goto="0"` or `data-goto="1"`:
 the two chevrons and both AMELIA GATES wordmarks. To add a third panel, add a
